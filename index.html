@@ -2,14 +2,11 @@
 <script>
   window.onload = function() {
     // module aliases
-    var Engine = Matter.Engine,
-        Render = Matter.Render,
-        World = Matter.World,
-        Bodies = Matter.Bodies;
+    const { Bodies, Engine, Render, World } = Matter;
 
-    var engine = Engine.create();
+    const engine = Engine.create();
 
-    var render = Render.create({
+    const render = Render.create({
         element: document.body,
         engine: engine,
         options: {
@@ -26,13 +23,13 @@
     ]);
 
     // create two boxes
-    var boxA = Bodies.rectangle(400, 200, 80, 80);
-    var boxB = Bodies.rectangle(450, 50, 80, 80);
-    var boxToBoxConstraint = Matter.Constraint.create({
+    const boxA = Bodies.rectangle(400, 200, 80, 80);
+    const boxB = Bodies.rectangle(450, 50, 80, 80);
+    const boxToBoxConstraint = Matter.Constraint.create({
         bodyA: boxA,
         bodyB: boxB,
     });
-    var boxes = Matter.Composite.create({
+    const boxes = Matter.Composite.create({
         bodies: [
             boxA, boxB,
         ],
@@ -42,14 +39,14 @@
     });
 
     // create ragdolls
-    const ragdoll = createRagdoll(200, 400, 1);
-    const ragdoll2 = createRagdoll(600, 400, 1.5);
+    const ragdoll = createRagdoll(200, 400);
+    const ragdoll2 = createRagdoll(600, 400);
 
     // add all of the bodies to the world
     World.add(engine.world, [ragdoll, ragdoll2, boxes]);
 
     // add mouse control
-    var mouse = Matter.Mouse.create(render.canvas),
+    const mouse = Matter.Mouse.create(render.canvas),
         mouseConstraint = Matter.MouseConstraint.create(engine, {
             mouse: mouse,
             constraint: {
@@ -68,296 +65,220 @@
     Render.run(render);
   }
 
-  function createRagdoll(x, y, scale, options) {
-    scale = typeof scale === 'undefined' ? 1 : scale;
+  // Create body parts and assemble them into a ragdoll
+  function createRagdoll(x, y) {
+    // aliases
+    const { Bodies, Body, Composite, Constraint } = Matter;
 
-    var Body = Matter.Body,
-        Bodies = Matter.Bodies,
-        Constraint = Matter.Constraint,
-        Composite = Matter.Composite,
-        Common = Matter.Common;
+    const defaultCollisionGroup = -1;
 
-    var headOptions = Common.extend({
-        label: 'head',
+    /*********************
+     * Define Body Parts *
+     *********************/
+    const headOptions = {
+        friction: 1,
+        frictionAir: .05,
+        render: {
+            fillStyle: '#FFBC42',
+        },
+    };
+    const chestOptions = {
+        friction: 1,
+        frictionAir: .05,
         collisionFilter: {
-            group: Body.nextGroup(true)
+            group: defaultCollisionGroup - 1
         },
         chamfer: {
-            radius: [15 * scale, 15 * scale, 15 * scale, 15 * scale]
+            radius: 20,
         },
         render: {
-            fillStyle: '#FFBC42'
-        }
-    }, options);
-
-    var chestOptions = Common.extend({
-        label: 'chest',
+            fillStyle: '#E0A423',
+        },
+    };
+    const armOptions = {
+        friction: 1,
+        frictionAir: .03,
         collisionFilter: {
-            group: Body.nextGroup(true)
+            group: defaultCollisionGroup
         },
         chamfer: {
-            radius: [20 * scale, 20 * scale, 26 * scale, 26 * scale]
+            radius: 10,
         },
         render: {
-            fillStyle: '#E0A423'
-        }
-    }, options);
-
-    var leftArmOptions = Common.extend({
-        label: 'left-arm',
+            fillStyle: '#FFBC42',
+        },
+    };
+    const legOptions = {
+        friction: 1,
+        frictionAir: .03,
         collisionFilter: {
-            group: Body.nextGroup(true)
+            group: defaultCollisionGroup - 1
         },
         chamfer: {
-            radius: 10 * scale
+            radius: 10,
         },
         render: {
-            fillStyle: '#FFBC42'
-        }
-    }, options);
+            fillStyle: '#FFBC42',
+        },
+    };
 
-    var leftLowerArmOptions = Common.extend({}, leftArmOptions, {
+    const lowerLegOptions = {
+        friction: 1,
+        frictionAir: .03,
+        collisionFilter: {
+            group: defaultCollisionGroup - 1
+        },
+        chamfer: {
+            radius: 2,
+        },
         render: {
-            fillStyle: '#E59B12'
-        }
+            fillStyle: '#E59B12',
+        },
+    };
+
+    const head = Bodies.circle(x, y - 70, 30, headOptions);
+    const chest = Bodies.rectangle(x, y, 60, 80, chestOptions);
+    const rightUpperArm = Bodies.rectangle(x + 40, y - 20, 20, 40, Object.assign({}, armOptions));
+    const rightLowerArm = Bodies.rectangle(x + 40, y + 20, 20, 60, Object.assign({}, armOptions));
+    const leftUpperArm = Bodies.rectangle(x - 40, y - 20, 20, 40, Object.assign({}, armOptions));
+    const leftLowerArm = Bodies.rectangle(x - 40, y + 20, 20, 60, Object.assign({}, armOptions));
+    const leftUpperLeg = Bodies.rectangle(x - 20, y + 60, 20, 40, Object.assign({}, legOptions));
+    const rightUpperLeg = Bodies.rectangle(x + 20, y + 60, 20, 40, Object.assign({}, legOptions));
+    const leftLowerLeg = Bodies.rectangle(x - 20, y + 100, 20, 60, Object.assign({}, lowerLegOptions));
+    const rightLowerLeg = Bodies.rectangle(x + 20, y + 100, 20, 60, Object.assign({}, lowerLegOptions));
+
+    const legTorso = Body.create({
+        parts: [chest, leftUpperLeg, rightUpperLeg],
+        collisionFilter: {
+            group: defaultCollisionGroup - 1
+        },
     });
 
-    var rightArmOptions = Common.extend({
-        label: 'right-arm',
-        collisionFilter: {
-            group: Body.nextGroup(true)
-        },
-        chamfer: {
-            radius: 10 * scale
-        },
-        render: {
-            fillStyle: '#FFBC42'
-        }
-    }, options);
-
-    var rightLowerArmOptions = Common.extend({}, rightArmOptions, {
-        render: {
-            fillStyle: '#E59B12'
-        }
-    });
-
-    var leftLegOptions = Common.extend({
-        label: 'left-leg',
-        collisionFilter: {
-            group: Body.nextGroup(true)
-        },
-        chamfer: {
-            radius: 10 * scale
-        },
-        render: {
-            fillStyle: '#FFBC42'
-        }
-    }, options);
-
-    var leftLowerLegOptions = Common.extend({}, leftLegOptions, {
-        render: {
-            fillStyle: '#E59B12'
-        }
-    });
-
-    var rightLegOptions = Common.extend({
-        label: 'right-leg',
-        collisionFilter: {
-            group: Body.nextGroup(true)
-        },
-        chamfer: {
-            radius: 10 * scale
-        },
-        render: {
-            fillStyle: '#FFBC42'
-        }
-    }, options);
-
-    var rightLowerLegOptions = Common.extend({}, rightLegOptions, {
-        render: {
-            fillStyle: '#E59B12'
-        }
-    });
-
-    var head = Bodies.rectangle(x, y - 60 * scale, 34 * scale, 40 * scale, headOptions);
-    var chest = Bodies.rectangle(x, y, 55 * scale, 80 * scale, chestOptions);
-    var rightUpperArm = Bodies.rectangle(x + 39 * scale, y - 15 * scale, 20 * scale, 40 * scale, rightArmOptions);
-    var rightLowerArm = Bodies.rectangle(x + 39 * scale, y + 25 * scale, 20 * scale, 60 * scale, rightLowerArmOptions);
-    var leftUpperArm = Bodies.rectangle(x - 39 * scale, y - 15 * scale, 20 * scale, 40 * scale, leftArmOptions);
-    var leftLowerArm = Bodies.rectangle(x - 39 * scale, y + 25 * scale, 20 * scale, 60 * scale, leftLowerArmOptions);
-    var leftUpperLeg = Bodies.rectangle(x - 20 * scale, y + 57 * scale, 20 * scale, 40 * scale, leftLegOptions);
-    var leftLowerLeg = Bodies.rectangle(x - 20 * scale, y + 97 * scale, 20 * scale, 60 * scale, leftLowerLegOptions);
-    var rightUpperLeg = Bodies.rectangle(x + 20 * scale, y + 57 * scale, 20 * scale, 40 * scale, rightLegOptions);
-    var rightLowerLeg = Bodies.rectangle(x + 20 * scale, y + 97 * scale, 20 * scale, 60 * scale, rightLowerLegOptions);
-
-    var chestToRightUpperArm = Constraint.create({
-        bodyA: chest,
+    /*****************************
+     * Define Constraints/Joints *
+     *****************************/
+    const chestToRightUpperArm = Constraint.create({
+        bodyA: legTorso,
         pointA: {
-            x: 24 * scale,
-            y: -23 * scale
+            x: 25,
+            y: -40
         },
         pointB: {
-            x: 0,
-            y: -8 * scale
+            x: -5,
+            y: -10
         },
         bodyB: rightUpperArm,
-        stiffness: 0.6,
+        stiffness: .2,
         render: {
             visible: false
         }
     });
-
-    var chestToLeftUpperArm = Constraint.create({
-        bodyA: chest,
+    const chestToLeftUpperArm = Constraint.create({
+        bodyA: legTorso,
         pointA: {
-            x: -24 * scale,
-            y: -23 * scale
+            x: -25,
+            y: -40
         },
         pointB: {
-            x: 0,
-            y: -8 * scale
+            x: 5,
+            y: -10
         },
         bodyB: leftUpperArm,
-        stiffness: 0.6,
+        stiffness: .2,
         render: {
             visible: false
         }
     });
 
-    var chestToLeftUpperLeg = Constraint.create({
-        bodyA: chest,
-        // Figure out why this is causing body to fly around
-        // pointA: {
-        //     x: -10 * scale,
-        //     y: 30 * scale
-        // },
-        // pointB: {
-        //     x: 0,
-        //     y: -10 * scale
-        // },
-        bodyB: leftUpperLeg,
-        stiffness: 0.6,
-        render: {
-            visible: false
-        }
-    });
-
-    var chestToRightUpperLeg = Constraint.create({
-        bodyA: chest,
-        // Figure out why this is causing body to fly around
-        // pointA: {
-        //     x: 10 * scale,
-        //     y: 30 * scale
-        // },
-        // pointB: {
-        //     x: 0,
-        //     y: -10 * scale
-        // },
-        bodyB: rightUpperLeg,
-        stiffness: 0.6,
-        render: {
-            visible: false
-        }
-    });
-
-    var upperToLowerRightArm = Constraint.create({
+    const upperToLowerRightArm = Constraint.create({
         bodyA: rightUpperArm,
         bodyB: rightLowerArm,
         pointA: {
             x: 0,
-            y: 15 * scale
+            y: 15
         },
         pointB: {
             x: 0,
-            y: -25 * scale
+            y: -20
         },
-        stiffness: 0.6,
+        stiffness: .2,
         render: {
             visible: false
         }
     });
 
-    var upperToLowerLeftArm = Constraint.create({
+    const upperToLowerLeftArm = Constraint.create({
         bodyA: leftUpperArm,
         bodyB: leftLowerArm,
         pointA: {
             x: 0,
-            y: 15 * scale
+            y: 15
         },
         pointB: {
             x: 0,
-            y: -25 * scale
+            y: -20
         },
-        stiffness: 0.6,
+        stiffness: .2,
         render: {
             visible: false
         }
     });
 
-    var upperToLowerLeftLeg = Constraint.create({
-        bodyA: leftUpperLeg,
+    const upperToLowerLeftLeg = Constraint.create({
+        bodyA: legTorso,
         bodyB: leftLowerLeg,
         pointA: {
-            x: 0,
-            y: 20 * scale
+            x: -20,
+            y: 60
         },
         pointB: {
             x: 0,
-            y: -20 * scale
+            y: -25
         },
-        stiffness: 0.6,
+        stiffness: .2,
         render: {
             visible: false
         }
     });
 
-    var upperToLowerRightLeg = Constraint.create({
-        bodyA: rightUpperLeg,
+    const upperToLowerRightLeg = Constraint.create({
+        bodyA: legTorso,
         bodyB: rightLowerLeg,
         pointA: {
-            x: 0,
-            y: 20 * scale
+            x: 20,
+            y: 60
         },
         pointB: {
             x: 0,
-            y: -20 * scale
+            y: -25
         },
-        stiffness: 0.6,
+        stiffness: .2,
         render: {
             visible: false
         }
     });
 
-    var headContraint = Constraint.create({
+    const headContraint = Constraint.create({
         bodyA: head,
         pointA: {
             x: 0,
-            y: 23 * scale
+            y: 20
         },
         pointB: {
             x: 0,
-            y: -37 * scale
+            y: -50
         },
-        bodyB: chest,
-        stiffness: 0.6,
+        bodyB: legTorso,
+        stiffness: .3,
         render: {
             visible: false
         }
     });
 
-    var person = Composite.create({
-        bodies: [
-            chest, head, leftLowerArm, leftUpperArm, 
-            rightLowerArm, rightUpperArm, leftLowerLeg, 
-            rightLowerLeg, leftUpperLeg, rightUpperLeg
-        ],
-        constraints: [
-            upperToLowerLeftArm, upperToLowerRightArm, chestToLeftUpperArm, 
-            chestToRightUpperArm, headContraint, upperToLowerLeftLeg, 
-            upperToLowerRightLeg, chestToLeftUpperLeg, chestToRightUpperLeg,
-        ]
+    const person = Composite.create({
+        bodies: [legTorso, head, leftLowerArm, leftUpperArm, rightLowerArm, rightUpperArm, leftLowerLeg, rightLowerLeg],
+        constraints: [upperToLowerLeftArm, upperToLowerRightArm, chestToLeftUpperArm, chestToRightUpperArm, headContraint, upperToLowerLeftLeg, upperToLowerRightLeg]
     });
-
     return person;
-  };
+  }
 </script>

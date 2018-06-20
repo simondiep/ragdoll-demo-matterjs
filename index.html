@@ -4,7 +4,9 @@
     // module aliases
     const { Bodies, Engine, Render, World } = Matter;
 
-    const engine = Engine.create();
+    const engine = Engine.create({
+      gravity: { x: 0, y: 1 }
+    });
 
     const render = Render.create({
         element: document.body,
@@ -38,12 +40,11 @@
         ]
     });
 
-    // create ragdolls
+    // create ragdoll
     const ragdoll = createRagdoll(200, 400);
-    const ragdoll2 = createRagdoll(600, 400);
 
     // add all of the bodies to the world
-    World.add(engine.world, [ragdoll, ragdoll2, boxes]);
+    World.add(engine.world, [ragdoll, boxes]);
 
     // add mouse control
     const mouse = Matter.Mouse.create(render.canvas),
@@ -275,6 +276,26 @@
         }
     });
 
+    window.addEventListener('keydown',
+      (event) => {
+        const FORCE_VALUE = 0.05;
+        switch(event.keyCode) {
+          case 81: //q
+            Matter.Body.applyForce(leftLowerArm, leftLowerArm.position, {x: 0, y: -FORCE_VALUE});
+            break;
+          case 87: //w
+            Matter.Body.applyForce(leftLowerLeg, leftLowerLeg.position, {x: 0, y: -FORCE_VALUE});
+            break;
+          case 79: //o
+            Matter.Body.applyForce(rightLowerArm, rightLowerArm.position, {x: 0, y: -FORCE_VALUE});
+            break;
+          case 80: //p
+            Matter.Body.applyForce(rightLowerLeg, rightLowerLeg.position, {x: 0, y: -FORCE_VALUE});
+            break;
+        }
+      }
+    );
+
     const person = Composite.create({
         bodies: [legTorso, head, leftLowerArm, leftUpperArm, rightLowerArm, rightUpperArm, leftLowerLeg, rightLowerLeg],
         constraints: [upperToLowerLeftArm, upperToLowerRightArm, chestToLeftUpperArm, chestToRightUpperArm, headContraint, upperToLowerLeftLeg, upperToLowerRightLeg]
@@ -282,3 +303,4 @@
     return person;
   }
 </script>
+<div>Make the person fly by pressing qwop</div>

@@ -6,6 +6,12 @@
   const renderWidth = 1200;
   const renderHeight = 600;
 
+  // To bound the world coordinates
+  const worldXMin = -10000;
+  const worldXMax = 10000;
+  const worldYMin = -10000;
+  const worldYMax = 10000;
+
   window.onload = function () {
     const canvas = document.createElement('canvas');
     context = canvas.getContext('2d');
@@ -24,7 +30,7 @@
       // walls
       Bodies.rectangle(renderWidth / 2, 0, renderWidth, 50, { isStatic: true }),
       Bodies.rectangle(renderWidth / 2, renderHeight, renderWidth, 50, { isStatic: true }),
-      Bodies.rectangle(renderWidth, renderHeight / 2, 50, renderHeight, { isStatic: true }),
+      // Bodies.rectangle(renderWidth, renderHeight / 2, 50, renderHeight, { isStatic: true }),
       Bodies.rectangle(0, renderHeight / 2, 50, renderHeight, { isStatic: true })
     ]);
 
@@ -69,12 +75,40 @@
     setInterval(render, 1000 / 60);
   }
 
-  // Custom renderer
+  /**************************
+   * Render functions start *
+   **************************/
+
+  function adjustCameraToPlayer() {
+    function clamp(value, min, max) {
+      if (value < min) return min;
+      else if (value > max) return max;
+      return value;
+    }
+
+    context.setTransform(1, 0, 0, 1, 0, 0);//reset the transform matrix as it is cumulative
+    // context.clearRect(0, 0, renderWidth, renderHeight);//clear the viewport AFTER the matrix is reset
+    context.fillStyle = 'black';
+    context.fillRect(0, 0, renderWidth, renderHeight);
+
+    //Clamp the camera position to the world bounds while centering the camera around the player  
+    var camX = clamp(-chest.vertices[0].x + renderWidth / 2, worldXMin, worldXMax - renderWidth);
+    var camY = clamp(-chest.vertices[0].y + renderHeight * 3 / 5, worldYMin, worldYMax - renderHeight);
+
+    context.translate(camX, camY);
+
+    document.getElementById('xPosition').innerHTML = chest.vertices[0].x.toFixed(0);
+    document.getElementById('yPosition').innerHTML = (renderHeight - chest.vertices[0].y).toFixed(0);
+  }
+
   function render() {
     var bodies = Matter.Composite.allBodies(engine.world);
 
-    context.fillStyle = 'black';
-    context.fillRect(0, 0, renderWidth, renderHeight);
+    adjustCameraToPlayer();
+
+    // Color the background
+    context.fillStyle = 'lightblue';
+    context.fillRect(0, 0, renderWidth * 3, renderHeight);
 
     for (var i = 0; i < bodies.length; i += 1) {
       if (bodies[i].parts.length > 1) {
@@ -104,6 +138,10 @@
     context.fillStyle = bodyPart.render.fillStyle;
     context.fill();
   }
+
+  /**************************
+   * Render functions end *
+   **************************/
 
   // Create body parts and assemble them into a ragdoll
   function createRagdoll(x, y) {
@@ -320,16 +358,16 @@
         const FORCE_VALUE = 0.05;
         switch (event.keyCode) {
           case 81: //q
-            Matter.Body.applyForce(leftLowerArm, leftLowerArm.position, { x: 0, y: -FORCE_VALUE });
+            Matter.Body.applyForce(leftLowerArm, leftLowerArm.position, { x: -FORCE_VALUE, y: -FORCE_VALUE });
             break;
           case 87: //w
-            Matter.Body.applyForce(leftLowerLeg, leftLowerLeg.position, { x: 0, y: -FORCE_VALUE });
+            Matter.Body.applyForce(leftLowerLeg, leftLowerLeg.position, { x: -FORCE_VALUE, y: -FORCE_VALUE });
             break;
           case 79: //o
-            Matter.Body.applyForce(rightLowerArm, rightLowerArm.position, { x: 0, y: -FORCE_VALUE });
+            Matter.Body.applyForce(rightLowerArm, rightLowerArm.position, { x: FORCE_VALUE, y: -FORCE_VALUE });
             break;
           case 80: //p
-            Matter.Body.applyForce(rightLowerLeg, rightLowerLeg.position, { x: 0, y: -FORCE_VALUE });
+            Matter.Body.applyForce(rightLowerLeg, rightLowerLeg.position, { x: FORCE_VALUE, y: -FORCE_VALUE });
             break;
         }
       }
@@ -343,3 +381,11 @@
   }
 </script>
 <div>Make the person fly by pressing qwop</div>
+<div>
+  <label>Distance</label>
+  <label id="xPosition"></label>
+</div>
+<div>
+  <label>Height</label>
+  <label id="yPosition"></label>
+</div>

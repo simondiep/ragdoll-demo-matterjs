@@ -99,12 +99,17 @@
       context.fillStyle = 'black';
     }
     context.fillRect(0, 0, renderWidth, renderHeight);
-
     //Clamp the camera position to the world bounds while centering the camera around the player  
     var camX = clamp(-playerCoordinates.x + renderWidth / 2, worldXMin, worldXMax - renderWidth);
     var camY = clamp(-playerCoordinates.y + renderHeight * 3 / 5, worldYMin, worldYMax - renderHeight);
 
     context.translate(camX, camY);
+
+    // Draw patterned background image
+    const backgroundImage = document.getElementById("backgroundImage");
+    const ptrn = context.createPattern(backgroundImage, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+    context.fillStyle = ptrn;
+    context.fillRect(worldXMin, worldYMin, worldXMax*2, worldYMax);
 
     document.getElementById('xPosition').innerHTML = playerCoordinates.x.toFixed(0);
     document.getElementById('yPosition').innerHTML = perceivedHeight.toFixed(0);
@@ -428,3 +433,4 @@
   <label>Height</label>
   <label id="yPosition"></label>
 </div>
+<img id="backgroundImage" src="./clouds3.jpg" style="display:none"/>

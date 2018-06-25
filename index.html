@@ -13,6 +13,10 @@
   const worldYMin = -1000;
   const worldYMax = 10000;
 
+  // Store previous locations to indicate motion
+  const lastPositions = [];
+  const NUMBER_OF_LAST_POSITIONS = 10;
+
   window.onload = function () {
     canvas = document.createElement('canvas');
     context = canvas.getContext('2d');
@@ -106,10 +110,38 @@
     document.getElementById('yPosition').innerHTML = perceivedHeight.toFixed(0);
   }
 
+  // store last positions to indicate motion
+  function storeLastPosition(xPos, yPos) {
+    // push an item
+    lastPositions.push({
+      x: xPos,
+      y: yPos
+    });
+
+    // get rid of first item
+    if (lastPositions.length > NUMBER_OF_LAST_POSITIONS) {
+      lastPositions.shift();
+    }
+
+    // get rid of duplicates/overlaps
+    if (lastPositions.length > 1 && lastPositions[0].x === lastPositions[1].x && lastPositions[0].y === lastPositions[1].y) {
+      lastPositions.shift();
+    }
+  }
+
   function render() {
     var bodies = Matter.Composite.allBodies(engine.world);
 
     adjustCameraToPlayer();
+
+    // draw last positions as dot trail to indicate motion
+    for (var i = 0; i < lastPositions.length; i++) {
+      const ratio = (i + 1) / lastPositions.length;
+      context.beginPath();
+      context.arc(lastPositions[i].x, lastPositions[i].y, 20, 0, 2 * Math.PI, true);
+      context.fillStyle = "rgba(224, 164, 35, " + ratio / 4 + ")";
+      context.fill();
+    }
 
     for (var i = 0; i < bodies.length; i += 1) {
       if (bodies[i].parts.length > 1) {
@@ -121,6 +153,7 @@
       }
     }
   }
+
   // Custom renderer
   function renderBodyPart(bodyPart) {
     if (bodyPart.label === "Body") {
@@ -138,6 +171,10 @@
     context.closePath();
     context.fillStyle = bodyPart.render.fillStyle;
     context.fill();
+
+    if (bodyPart.label === 'chest') {
+      storeLastPosition(bodyPart.position.x, bodyPart.position.y);
+    }
   }
 
   /**************************
@@ -170,6 +207,7 @@
       chamfer: {
         radius: 20,
       },
+      label: 'chest',
       render: {
         fillStyle: '#E0A423',
       },

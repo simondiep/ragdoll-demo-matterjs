@@ -19,7 +19,8 @@
   const NUMBER_OF_LAST_POSITIONS = 10;
 
   let mouseDown = false;
-  const extraLegs = [];
+  const kickingLegs = [];
+  let KICK_LEG_SCALE = 4;
 
   let camX;
   let camY;
@@ -86,11 +87,49 @@
     const y = event.clientY - canvas.offsetTop;
     mouseDown = true;
 
+    let quadrantClicked;
+    let legProps;
+    if (x < canvas.width / 2 && y < canvas.height / 2) {
+      quadrantClicked = 'NW';
+      // Leg extends down, foot extends right, 45 degree angle
+      legProps = {
+        legDirection: 'down',
+        footDirection: 'right',
+        angle: 45,
+      }
+    } else if (x < canvas.width / 2 && y >= canvas.height / 2) {
+      quadrantClicked = 'SW';
+      // Leg extends up, foot extends right, -45 degree angle
+      legProps = {
+        legDirection: 'up',
+        footDirection: 'right',
+        angle: -45,
+      }
+    } else if (x > canvas.width / 2 && y <= canvas.height / 2) {
+      quadrantClicked = 'NE';
+      // Leg extends down, foot extends left, -45 degree angle
+      legProps = {
+        legDirection: 'down',
+        footDirection: 'left',
+        angle: -45,
+      }
+    } else {
+      quadrantClicked = 'SE';
+      // Leg extends up, foot extends left, 45 degree angle
+      legProps = {
+        legDirection: 'up',
+        footDirection: 'left',
+        angle: 45,
+      }
+    }
+
+    const legDirectionOffsetX = legProps.footDirection === 'right' ? -40 : 40;
+    const legDirectionOffsetY = legProps.legDirection === 'down' ? -80 : 80;
     const leg = Matter.Bodies.rectangle(
-      x - camX - 400,
-      y - camY - 800,
-      400,
-      1200,
+      x - camX + legDirectionOffsetX * KICK_LEG_SCALE,
+      y - camY + legDirectionOffsetY * KICK_LEG_SCALE,
+      40 * KICK_LEG_SCALE,
+      120 * KICK_LEG_SCALE,
       {
         mass: 5,
         friction: 1,
@@ -106,11 +145,14 @@
         },
       },
     );
+
+    const footDirectionOffsetX = legProps.footDirection === 'left' ? 20 : -20;
+    const footDirectionOffsetY = 0;
     const foot = Matter.Bodies.rectangle(
-      x - camX - 200,
-      y - camY,
-      800,
-      400,
+      x - camX + footDirectionOffsetX * KICK_LEG_SCALE,
+      y - camY + footDirectionOffsetY,
+      80 * KICK_LEG_SCALE,
+      40 * KICK_LEG_SCALE,
       {
         mass: 10,
         friction: 1,
@@ -130,18 +172,14 @@
     const kickingLeg = Matter.Body.create({
       parts: [leg, foot],
       collisionFilter: {
-        group: - 1,
+        group: - 10,
       },
     });
+    kickingLeg.quadrantClicked = quadrantClicked;
     kickingLeg.expireTime = Date.now() + 400;
-    // Matter.World.add(engine.world, Matter.Constraint.create({
-    //   pointA: { x: x - camX - 20, y: y - camY - 20 },
-    //   bodyB: kickingLeg
-    // }));
-    Matter.Body.setAngle(kickingLeg, 45);
+    Matter.Body.setAngle(kickingLeg, legProps.angle);
     Matter.Body.setStatic(kickingLeg, true);
-    // Matter.Body.applyForce(foot, foot.position, -1.50);
-    extraLegs.push(kickingLeg);
+    kickingLegs.push(kickingLeg);
     Matter.World.add(engine.world, [kickingLeg]);
   }
 
@@ -160,7 +198,7 @@
       return value;
     }
 
-    context.setTransform(1, 0, 0, 1, 0, 0);//reset the transform matrix as it is cumulative
+    context.setTransform(1, 0, 0, 1, 0, 0); // reset
 
     const playerCoordinates = {
       x: chest.vertices[0].x,
@@ -230,15 +268,28 @@
     }
 
     const currentTime = Date.now();
-    // rotate extra legs
-    for (let i = extraLegs.length - 1; i >= 0; i--) {
-      const leg = extraLegs[i];
-      Matter.Body.rotate(leg, -0.10);
-      // Matter.Body.applyForce(leg, { x: leg.position.x - 40, y: leg.position.y - 100 }, 50);
-      // Remove fully rotated leg
+    // rotate kicking legs
+    for (let i = kickingLegs.length - 1; i >= 0; i--) {
+      const leg = kickingLegs[i];
+      let rotation;
+      switch (leg.quadrantClicked) {
+        case 'NW':
+          rotation = -.1;
+          break;
+        case 'SW':
+          rotation = .1;
+          break;
+        case 'NE':
+          rotation = .1;
+          break;
+        case 'SE':
+          rotation = -.1;
+          break;
+      }
+      Matter.Body.rotate(leg, rotation);
       if (currentTime > leg.expireTime) {
         Matter.World.remove(engine.world, leg);
-        extraLegs.splice(i, 1);
+        kickingLegs.splice(i, 1);
       }
     }
   }

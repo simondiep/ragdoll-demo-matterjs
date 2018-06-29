@@ -17,7 +17,7 @@ QWOP each move a different body part upwards
 
 - zoom out the faster the body is moving
 - add goal and win screen
-- depending on which quadrant you click in, show a different leg, such as from below or to the left
-- hold click to get bigger leg
+- hold click to get bigger leg (Matter.Body.Scale)
 - multiplayer
 - sound effects
+- sprites

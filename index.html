@@ -18,6 +18,12 @@
   const lastPositions = [];
   const NUMBER_OF_LAST_POSITIONS = 10;
 
+  let mouseDown = false;
+  const extraLegs = [];
+
+  let camX;
+  let camY;
+
   window.onload = function () {
     canvas = document.createElement('canvas');
     context = canvas.getContext('2d');
@@ -67,12 +73,92 @@
 
     Engine.run(engine);
 
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('mouseup', onMouseUp);
+
     setInterval(render, 1000 / 60);
+  }
+
+  // Create a kicking leg on click
+  function onMouseDown(event) {
+    event.preventDefault();
+    const x = event.clientX - canvas.offsetLeft;
+    const y = event.clientY - canvas.offsetTop;
+    mouseDown = true;
+
+    const leg = Matter.Bodies.rectangle(
+      x - camX - 40,
+      y - camY - 80,
+      40,
+      120,
+      {
+        friction: 1,
+        frictionAir: 0.03,
+        collisionFilter: {
+          group: - 10,
+        },
+        chamfer: {
+          radius: 2,
+        },
+        render: {
+          fillStyle: "blue",
+        },
+      },
+    );
+    const foot = Matter.Bodies.rectangle(
+      x - camX - 20,
+      y - camY,
+      80,
+      40,
+      {
+        mass: 10,
+        friction: 1,
+        frictionAir: 0.03,
+        collisionFilter: {
+          group: - 10,
+        },
+        chamfer: {
+          radius: 2,
+        },
+        render: {
+          fillStyle: "#654321",
+        },
+      },
+    );
+    // foot.image = document.getElementById('bootImg');
+    const kickingLeg = Matter.Body.create({
+      parts: [leg, foot],
+      collisionFilter: {
+        group: - 1,
+      },
+    });
+    kickingLeg.expireTime = Date.now() + 400;
+    // Matter.World.add(engine.world, Matter.Constraint.create({
+    //   pointA: { x: x - camX - 20, y: y - camY - 20 },
+    //   bodyB: kickingLeg
+    // }));
+    Matter.Body.setAngle(kickingLeg, 45);
+    Matter.Body.setStatic(kickingLeg, true);
+    // Matter.Body.applyForce(foot, foot.position, -1.50);
+    extraLegs.push(kickingLeg);
+    Matter.World.add(engine.world, [kickingLeg]);
+  }
+
+  function onMouseUp(event) {
+    mouseDown = false;
   }
 
   /**************************
    * Render functions start *
    **************************/
+
+  function drawFilledCircle(x, y, radius, color) {
+    context.fillStyle = color;
+    context.beginPath();
+    context.arc(x, y, radius, 0, 2 * Math.PI);
+    context.closePath();
+    context.fill();
+  }
 
   function adjustCameraToPlayer() {
     function clamp(value, min, max) {
@@ -92,8 +178,8 @@
     context.fillStyle = 'black';
     context.fillRect(0, 0, renderWidth, renderHeight);
     //Clamp the camera position to the world bounds while centering the camera around the player  
-    var camX = clamp(-playerCoordinates.x + renderWidth / 2, worldXMin, worldXMax - renderWidth);
-    var camY = clamp(-playerCoordinates.y + renderHeight * 3 / 5, worldYMin, worldYMax - renderHeight);
+    camX = clamp(-playerCoordinates.x + renderWidth / 2, worldXMin, worldXMax - renderWidth);
+    camY = clamp(-playerCoordinates.y + renderHeight * 3 / 5, worldYMin, worldYMax - renderHeight);
 
     context.translate(camX, camY);
 
@@ -101,7 +187,7 @@
     const backgroundImage = document.getElementById("backgroundImage");
     const ptrn = context.createPattern(backgroundImage, 'repeat'); // Create a pattern with this image, and set it to "repeat".
     context.fillStyle = ptrn;
-    context.fillRect(worldXMin, -worldYMax, worldXMax * 2, worldYMax*2);
+    context.fillRect(worldXMin, -worldYMax, worldXMax * 2, worldYMax * 2);
 
     document.getElementById('xPosition').innerHTML = playerCoordinates.x.toFixed(0);
     document.getElementById('yPosition').innerHTML = perceivedHeight.toFixed(0);
@@ -149,6 +235,19 @@
         renderBodyPart(bodies[i]);
       }
     }
+
+    const currentTime = Date.now();
+    // rotate extra legs
+    for (let i = extraLegs.length - 1; i >= 0; i--) {
+      const leg = extraLegs[i];
+      Matter.Body.rotate(leg, -0.10);
+      // Matter.Body.applyForce(leg, { x: leg.position.x - 40, y: leg.position.y - 100 }, 50);
+      // Remove fully rotated leg
+      if (currentTime > leg.expireTime) {
+        Matter.World.remove(engine.world, leg);
+        extraLegs.splice(i, 1);
+      }
+    }
   }
 
   // Custom renderer
@@ -156,6 +255,14 @@
     if (bodyPart.label === "Body") {
       return;
     }
+    // if (bodyPart.image) {
+    //   context.save();
+    //   context.rotate(bodyPart.angle);
+    //   context.drawImage(bodyPart.image, bodyPart.position.x, bodyPart.position.y, bodyPart.vertices[1].x - bodyPart.vertices[0].x, bodyPart.vertices[1].y - bodyPart.vertices[0].y);
+    //   context.restore();
+    //   return;
+    // }
+
     var vertices = bodyPart.vertices;
     context.beginPath();
     context.moveTo(vertices[0].x, vertices[0].y);
@@ -187,4 +294,7 @@
   <label>Height</label>
   <label id="yPosition"></label>
 </div>
-<img id="backgroundImage" src="./clouds3.jpg" style="display:none" />
+<div style="display:none">
+  <img id="backgroundImage" src="./clouds3.jpg" />
+  <!-- <img id="bootImg" src="./boot.png" /> -->
+</div>

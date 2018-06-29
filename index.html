@@ -1,30 +1,9 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.12.0/matter.min.js"></script>
-<script type="text/javascript" src="./ragdoll.js"></script>
+<script type="text/javascript" src="./src/globals.js"></script>
+<script type="text/javascript" src="./src/ragdoll.js"></script>
+<script type="text/javascript" src="./src/renderer.js"></script>
+<script type="text/javascript" src="./src/kicking.js"></script>
 <script>
-  let engine;
-  let canvas;
-  let context;
-  let chest; // Focal point
-  const renderWidth = 1200;
-  const renderHeight = 600;
-
-  // To bound the world coordinates
-  const worldXMin = -10000;
-  const worldXMax = 10000;
-  const worldYMin = -1000;
-  const worldYMax = 10000;
-
-  // Store previous locations to indicate motion
-  const lastPositions = [];
-  const NUMBER_OF_LAST_POSITIONS = 10;
-
-  let mouseDown = false;
-  const kickingLegs = [];
-  let KICK_LEG_SCALE = 4;
-
-  let camX;
-  let camY;
-
   window.onload = function () {
     canvas = document.createElement('canvas');
     context = canvas.getContext('2d');
@@ -34,7 +13,6 @@
 
     // module aliases
     const { Bodies, Engine, Render, World } = Matter;
-    // Matter.Resolver._restingThresh = 100;
     engine = Engine.create({
       gravity: { x: 0, y: 1 },
     });
@@ -53,24 +31,12 @@
     // create two boxes
     const boxA = Bodies.rectangle(400, 200, 80, 80);
     const boxB = Bodies.rectangle(450, 50, 80, 80);
-    const boxToBoxConstraint = Matter.Constraint.create({
-      bodyA: boxA,
-      bodyB: boxB,
-    });
-    const boxes = Matter.Composite.create({
-      bodies: [
-        boxA, boxB,
-      ],
-      constraints: [
-        boxToBoxConstraint,
-      ]
-    });
 
     // create ragdoll
     const ragdoll = createRagdoll(200, 400);
 
     // add all of the bodies to the world
-    World.add(engine.world, [ragdoll, boxes]);
+    World.add(engine.world, [ragdoll, boxA, boxB]);
 
     Engine.run(engine);
 
@@ -78,150 +44,6 @@
     canvas.addEventListener('mouseup', onMouseUp);
 
     setInterval(render, 1000 / 60);
-  }
-
-  // Create a kicking leg on click
-  function onMouseDown(event) {
-    event.preventDefault();
-    const x = event.clientX - canvas.offsetLeft;
-    const y = event.clientY - canvas.offsetTop;
-    mouseDown = true;
-
-    let quadrantClicked;
-    let legProps;
-    if (x < canvas.width / 2 && y < canvas.height / 2) {
-      quadrantClicked = 'NW';
-      // Leg extends down, foot extends right, 45 degree angle
-      legProps = {
-        legDirection: 'down',
-        footDirection: 'right',
-        angle: 45,
-      }
-    } else if (x < canvas.width / 2 && y >= canvas.height / 2) {
-      quadrantClicked = 'SW';
-      // Leg extends up, foot extends right, -45 degree angle
-      legProps = {
-        legDirection: 'up',
-        footDirection: 'right',
-        angle: -45,
-      }
-    } else if (x > canvas.width / 2 && y <= canvas.height / 2) {
-      quadrantClicked = 'NE';
-      // Leg extends down, foot extends left, -45 degree angle
-      legProps = {
-        legDirection: 'down',
-        footDirection: 'left',
-        angle: -45,
-      }
-    } else {
-      quadrantClicked = 'SE';
-      // Leg extends up, foot extends left, 45 degree angle
-      legProps = {
-        legDirection: 'up',
-        footDirection: 'left',
-        angle: 45,
-      }
-    }
-
-    const legDirectionOffsetX = legProps.footDirection === 'right' ? -40 : 40;
-    const legDirectionOffsetY = legProps.legDirection === 'down' ? -80 : 80;
-    const leg = Matter.Bodies.rectangle(
-      x - camX + legDirectionOffsetX * KICK_LEG_SCALE,
-      y - camY + legDirectionOffsetY * KICK_LEG_SCALE,
-      40 * KICK_LEG_SCALE,
-      120 * KICK_LEG_SCALE,
-      {
-        mass: 5,
-        friction: 1,
-        frictionAir: 0.03,
-        collisionFilter: {
-          group: - 10,
-        },
-        chamfer: {
-          radius: 2,
-        },
-        render: {
-          fillStyle: "blue",
-        },
-      },
-    );
-
-    const footDirectionOffsetX = legProps.footDirection === 'left' ? 20 : -20;
-    const footDirectionOffsetY = 0;
-    const foot = Matter.Bodies.rectangle(
-      x - camX + footDirectionOffsetX * KICK_LEG_SCALE,
-      y - camY + footDirectionOffsetY,
-      80 * KICK_LEG_SCALE,
-      40 * KICK_LEG_SCALE,
-      {
-        mass: 10,
-        friction: 1,
-        frictionAir: 0.03,
-        collisionFilter: {
-          group: - 10,
-        },
-        chamfer: {
-          radius: 2,
-        },
-        render: {
-          fillStyle: "#654321",
-        },
-      },
-    );
-    // foot.image = document.getElementById('bootImg');
-    const kickingLeg = Matter.Body.create({
-      parts: [leg, foot],
-      collisionFilter: {
-        group: - 10,
-      },
-    });
-    kickingLeg.quadrantClicked = quadrantClicked;
-    kickingLeg.expireTime = Date.now() + 400;
-    Matter.Body.setAngle(kickingLeg, legProps.angle);
-    Matter.Body.setStatic(kickingLeg, true);
-    kickingLegs.push(kickingLeg);
-    Matter.World.add(engine.world, [kickingLeg]);
-  }
-
-  function onMouseUp(event) {
-    mouseDown = false;
-  }
-
-  /**************************
-   * Render functions start *
-   **************************/
-
-  function adjustCameraToPlayer() {
-    function clamp(value, min, max) {
-      if (value < min) return min;
-      else if (value > max) return max;
-      return value;
-    }
-
-    context.setTransform(1, 0, 0, 1, 0, 0); // reset
-
-    const playerCoordinates = {
-      x: chest.vertices[0].x,
-      y: chest.vertices[0].y,
-    };
-    const perceivedHeight = renderHeight - playerCoordinates.y;
-
-    context.fillStyle = 'black';
-    context.fillRect(0, 0, renderWidth, renderHeight);
-    //Clamp the camera position to the world bounds while centering the camera around the player  
-    camX = clamp(-playerCoordinates.x + renderWidth / 2, worldXMin, worldXMax - renderWidth);
-    camY = clamp(-playerCoordinates.y + renderHeight * 3 / 5, worldYMin, worldYMax - renderHeight);
-
-    context.translate(camX, camY);
-
-    // Draw patterned background image
-    const backgroundImage = document.getElementById("backgroundImage");
-    const ptrn = context.createPattern(backgroundImage, 'repeat'); // Create a pattern with this image, and set it to "repeat".
-    context.fillStyle = ptrn;
-    context.fillRect(worldXMin, -worldYMax, worldXMax * 2, worldYMax * 2);
-
-    document.getElementById('xPosition').innerHTML = playerCoordinates.x.toFixed(0);
-    document.getElementById('yPosition').innerHTML = perceivedHeight.toFixed(0);
   }
 
   // store last positions to indicate motion
@@ -242,94 +64,8 @@
       lastPositions.shift();
     }
   }
-
-  function render() {
-    var bodies = Matter.Composite.allBodies(engine.world);
-
-    adjustCameraToPlayer();
-
-    // draw last positions as dot trail to indicate motion
-    for (var i = 0; i < lastPositions.length; i++) {
-      const ratio = (i + 1) / lastPositions.length;
-      context.beginPath();
-      context.arc(lastPositions[i].x, lastPositions[i].y, 20, 0, 2 * Math.PI, true);
-      context.fillStyle = "rgba(224, 164, 35, " + ratio / 4 + ")";
-      context.fill();
-    }
-
-    for (var i = 0; i < bodies.length; i += 1) {
-      if (bodies[i].parts.length > 1) {
-        for (let part of bodies[i].parts) {
-          renderBodyPart(part);
-        }
-      } else {
-        renderBodyPart(bodies[i]);
-      }
-    }
-
-    const currentTime = Date.now();
-    // rotate kicking legs
-    for (let i = kickingLegs.length - 1; i >= 0; i--) {
-      const leg = kickingLegs[i];
-      let rotation;
-      switch (leg.quadrantClicked) {
-        case 'NW':
-          rotation = -.1;
-          break;
-        case 'SW':
-          rotation = .1;
-          break;
-        case 'NE':
-          rotation = .1;
-          break;
-        case 'SE':
-          rotation = -.1;
-          break;
-      }
-      Matter.Body.rotate(leg, rotation);
-      if (currentTime > leg.expireTime) {
-        Matter.World.remove(engine.world, leg);
-        kickingLegs.splice(i, 1);
-      }
-    }
-  }
-
-  // Custom renderer
-  function renderBodyPart(bodyPart) {
-    if (bodyPart.label === "Body") {
-      return;
-    }
-    // if (bodyPart.image) {
-    //   context.save();
-    //   context.rotate(bodyPart.angle);
-    //   context.drawImage(bodyPart.image, bodyPart.position.x, bodyPart.position.y, bodyPart.vertices[1].x - bodyPart.vertices[0].x, bodyPart.vertices[1].y - bodyPart.vertices[0].y);
-    //   context.restore();
-    //   return;
-    // }
-
-    var vertices = bodyPart.vertices;
-    context.beginPath();
-    context.moveTo(vertices[0].x, vertices[0].y);
-
-    for (var j = 1; j < vertices.length; j += 1) {
-      context.lineTo(vertices[j].x, vertices[j].y);
-    }
-
-    context.lineTo(vertices[0].x, vertices[0].y);
-    context.closePath();
-    context.fillStyle = bodyPart.render.fillStyle;
-    context.fill();
-
-    if (bodyPart.label === 'chest') {
-      storeLastPosition(bodyPart.position.x, bodyPart.position.y);
-    }
-  }
-
-  /**************************
-   * Render functions end *
-   **************************/
 </script>
-<div>Make the person fly by pressing qwop</div>
+<div>Click around to move the ragdoll, or press qwop</div>
 <div>
   <label>Distance</label>
   <label id="xPosition"></label>

@@ -4,7 +4,7 @@ An example ragdoll leveraging matter-js physics engine.
 
 ## Controls
 
-QWOP each move a different body part upwards
+QWOP each move a different body part upwards. Click to kick.
 
 ## Findings
 

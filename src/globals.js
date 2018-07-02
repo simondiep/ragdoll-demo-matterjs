@@ -15,9 +15,9 @@ const worldYMax = 10000;
 const lastPositions = [];
 const NUMBER_OF_LAST_POSITIONS = 10;
 
-let mouseDown = false;
+let mouseDownTimestamp;
+let clickedLocation;
 const kickingLegs = [];
-let KICK_LEG_SCALE = 4;
 
 let camX;
 let camY;

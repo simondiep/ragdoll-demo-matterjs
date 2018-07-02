@@ -55,6 +55,15 @@ function render() {
     }
   }
 
+  // draw indicator if click is being held down
+  if (clickedLocation) {
+    const dotColor = Date.now() % 2 == 0 ? "rgba(255,255,255,0.2)" : "rgba(155,155,155,0.2)";
+    context.beginPath();
+    context.arc(clickedLocation.x, clickedLocation.y, 20, 0, 2 * Math.PI, true);
+    context.fillStyle = dotColor;
+    context.fill();
+  }
+
   const currentTime = Date.now();
   // rotate kicking legs
   for (let i = kickingLegs.length - 1; i >= 0; i--) {

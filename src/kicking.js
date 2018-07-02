@@ -4,9 +4,22 @@ function onMouseDown(event) {
     return;
   }
   event.preventDefault();
+  mouseDownTimestamp = Date.now();
+
   const x = event.clientX - canvas.offsetLeft;
   const y = event.clientY - canvas.offsetTop;
-  mouseDown = true;
+  clickedLocation = {
+    x: x - camX,
+    y: y - camY,
+  };
+}
+
+function onMouseUp(event) {
+  // Biggr leg based on how long you hold click down
+  const legScale = Math.floor((Date.now() - mouseDownTimestamp) / 200) + 1;
+
+  const x = event.clientX - canvas.offsetLeft;
+  const y = event.clientY - canvas.offsetTop;
 
   let quadrantClicked;
   let legProps;
@@ -47,11 +60,11 @@ function onMouseDown(event) {
 
   const legDirectionOffsetX = legProps.footDirection === "right" ? -40 : 40;
   const legDirectionOffsetY = legProps.legDirection === "down" ? -80 : 80;
-  const legWidth = 40 * KICK_LEG_SCALE;
-  const legHeight = 120 * KICK_LEG_SCALE;
+  const legWidth = 40 * legScale;
+  const legHeight = 120 * legScale;
   const leg = Matter.Bodies.rectangle(
-    x - camX + legDirectionOffsetX * KICK_LEG_SCALE,
-    y - camY + legDirectionOffsetY * KICK_LEG_SCALE,
+    x - camX + legDirectionOffsetX * legScale,
+    y - camY + legDirectionOffsetY * legScale,
     legWidth,
     legHeight,
     {
@@ -72,10 +85,10 @@ function onMouseDown(event) {
 
   const footDirectionOffsetX = legProps.footDirection === "left" ? 25 : -25;
   const footDirectionOffsetY = -10;
-  const footWidth = 80 * KICK_LEG_SCALE;
-  const footHeight = 40 * KICK_LEG_SCALE;
+  const footWidth = 80 * legScale;
+  const footHeight = 40 * legScale;
   const foot = Matter.Bodies.rectangle(
-    x - camX + footDirectionOffsetX * KICK_LEG_SCALE,
+    x - camX + footDirectionOffsetX * legScale,
     y - camY + footDirectionOffsetY,
     footWidth,
     footHeight,
@@ -107,9 +120,6 @@ function onMouseDown(event) {
   Matter.Body.setStatic(kickingLeg, true);
   kickingLegs.push(kickingLeg);
   Matter.World.add(engine.world, [kickingLeg]);
-}
-
-// Not used atm
-function onMouseUp(event) {
-  mouseDown = false;
+  mouseDownTimestamp = null;
+  clickedLocation = null;
 }

@@ -17,7 +17,6 @@ QWOP each move a different body part upwards. Click to kick.
 
 - zoom out the faster the body is moving
 - add goal and win screen
-- hold click to get bigger leg (Matter.Body.Scale)
 - multiplayer
 - sound effects
 - sprites

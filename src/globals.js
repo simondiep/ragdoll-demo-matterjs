@@ -21,3 +21,7 @@ let KICK_LEG_SCALE = 4;
 
 let camX;
 let camY;
+
+function degreesToRadians(degrees) {
+  return (degrees * Math.PI) / 180;
+}

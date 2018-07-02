@@ -16,16 +16,8 @@ function adjustCameraToPlayer() {
   context.fillStyle = "black";
   context.fillRect(0, 0, renderWidth, renderHeight);
   //Clamp the camera position to the world bounds while centering the camera around the player
-  camX = clamp(
-    -playerCoordinates.x + renderWidth / 2,
-    worldXMin,
-    worldXMax - renderWidth,
-  );
-  camY = clamp(
-    -playerCoordinates.y + (renderHeight * 3) / 5,
-    worldYMin,
-    worldYMax - renderHeight,
-  );
+  camX = clamp(-playerCoordinates.x + renderWidth / 2, worldXMin, worldXMax - renderWidth);
+  camY = clamp(-playerCoordinates.y + (renderHeight * 3) / 5, worldYMin, worldYMax - renderHeight);
 
   context.translate(camX, camY);
 
@@ -35,9 +27,7 @@ function adjustCameraToPlayer() {
   context.fillStyle = ptrn;
   context.fillRect(worldXMin, -worldYMax, worldXMax * 2, worldYMax * 2);
 
-  document.getElementById("xPosition").innerHTML = playerCoordinates.x.toFixed(
-    0,
-  );
+  document.getElementById("xPosition").innerHTML = playerCoordinates.x.toFixed(0);
   document.getElementById("yPosition").innerHTML = perceivedHeight.toFixed(0);
 }
 
@@ -50,14 +40,7 @@ function render() {
   for (var i = 0; i < lastPositions.length; i++) {
     const ratio = (i + 1) / lastPositions.length;
     context.beginPath();
-    context.arc(
-      lastPositions[i].x,
-      lastPositions[i].y,
-      20,
-      0,
-      2 * Math.PI,
-      true,
-    );
+    context.arc(lastPositions[i].x, lastPositions[i].y, 20, 0, 2 * Math.PI, true);
     context.fillStyle = "rgba(224, 164, 35, " + ratio / 4 + ")";
     context.fill();
   }
@@ -79,16 +62,16 @@ function render() {
     let rotation;
     switch (leg.quadrantClicked) {
       case "NW":
-        rotation = -0.1;
+        rotation = degreesToRadians(-6);
         break;
       case "SW":
-        rotation = 0.1;
+        rotation = degreesToRadians(6);
         break;
       case "NE":
-        rotation = 0.1;
+        rotation = degreesToRadians(6);
         break;
       case "SE":
-        rotation = -0.1;
+        rotation = degreesToRadians(-6);
         break;
     }
     Matter.Body.rotate(leg, rotation);

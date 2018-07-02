@@ -16,7 +16,7 @@ function onMouseDown(event) {
     legProps = {
       legDirection: "down",
       footDirection: "right",
-      angle: 45,
+      angle: degreesToRadians(45),
     };
   } else if (x < canvas.width / 2 && y >= canvas.height / 2) {
     quadrantClicked = "SW";
@@ -24,7 +24,7 @@ function onMouseDown(event) {
     legProps = {
       legDirection: "up",
       footDirection: "right",
-      angle: -45,
+      angle: degreesToRadians(-45),
     };
   } else if (x > canvas.width / 2 && y <= canvas.height / 2) {
     quadrantClicked = "NE";
@@ -32,7 +32,7 @@ function onMouseDown(event) {
     legProps = {
       legDirection: "down",
       footDirection: "left",
-      angle: -45,
+      angle: degreesToRadians(-45),
     };
   } else {
     quadrantClicked = "SE";
@@ -40,7 +40,7 @@ function onMouseDown(event) {
     legProps = {
       legDirection: "up",
       footDirection: "left",
-      angle: 45,
+      angle: degreesToRadians(45),
     };
   }
 

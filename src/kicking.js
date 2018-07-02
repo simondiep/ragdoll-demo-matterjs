@@ -47,11 +47,13 @@ function onMouseDown(event) {
 
   const legDirectionOffsetX = legProps.footDirection === "right" ? -40 : 40;
   const legDirectionOffsetY = legProps.legDirection === "down" ? -80 : 80;
+  const legWidth = 40 * KICK_LEG_SCALE;
+  const legHeight = 120 * KICK_LEG_SCALE;
   const leg = Matter.Bodies.rectangle(
     x - camX + legDirectionOffsetX * KICK_LEG_SCALE,
     y - camY + legDirectionOffsetY * KICK_LEG_SCALE,
-    40 * KICK_LEG_SCALE,
-    120 * KICK_LEG_SCALE,
+    legWidth,
+    legHeight,
     {
       mass: 5,
       friction: 1,
@@ -64,9 +66,12 @@ function onMouseDown(event) {
       },
     },
   );
+  leg.width = legWidth;
+  leg.height = legHeight;
+  leg.image = document.getElementById("legImg");
 
-  const footDirectionOffsetX = legProps.footDirection === "left" ? 20 : -20;
-  const footDirectionOffsetY = 0;
+  const footDirectionOffsetX = legProps.footDirection === "left" ? 25 : -25;
+  const footDirectionOffsetY = -10;
   const footWidth = 80 * KICK_LEG_SCALE;
   const footHeight = 40 * KICK_LEG_SCALE;
   const foot = Matter.Bodies.rectangle(
@@ -89,7 +94,7 @@ function onMouseDown(event) {
   // custom render properties
   foot.width = footWidth;
   foot.height = footHeight;
-  foot.image = document.getElementById("bootImg");
+  foot.image = document.getElementById("footImg");
   const kickingLeg = Matter.Body.create({
     parts: [leg, foot],
     collisionFilter: {

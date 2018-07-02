@@ -10,39 +10,40 @@ function onMouseDown(event) {
 
   let quadrantClicked;
   let legProps;
-  if (x < canvas.width / 2 && y < canvas.height / 2) {
-    quadrantClicked = "NW";
-    // Leg extends down, foot extends right, 45 degree angle
-    legProps = {
-      legDirection: "down",
-      footDirection: "right",
-      angle: degreesToRadians(45),
-    };
-  } else if (x < canvas.width / 2 && y >= canvas.height / 2) {
-    quadrantClicked = "SW";
-    // Leg extends up, foot extends right, -45 degree angle
-    legProps = {
-      legDirection: "up",
-      footDirection: "right",
-      angle: degreesToRadians(-45),
-    };
-  } else if (x > canvas.width / 2 && y <= canvas.height / 2) {
-    quadrantClicked = "NE";
-    // Leg extends down, foot extends left, -45 degree angle
-    legProps = {
-      legDirection: "down",
-      footDirection: "left",
-      angle: degreesToRadians(-45),
-    };
-  } else {
-    quadrantClicked = "SE";
-    // Leg extends up, foot extends left, 45 degree angle
-    legProps = {
-      legDirection: "up",
-      footDirection: "left",
-      angle: degreesToRadians(45),
-    };
-  }
+  // TODO horizontally/vertically flip the image
+  // if (x < canvas.width / 2 && y < canvas.height / 2) {
+  quadrantClicked = "NW";
+  // Leg extends down, foot extends right, 45 degree angle
+  legProps = {
+    legDirection: "down",
+    footDirection: "right",
+    angle: degreesToRadians(45),
+  };
+  // } else if (x < canvas.width / 2 && y >= canvas.height / 2) {
+  //   quadrantClicked = "SW";
+  //   // Leg extends up, foot extends right, -45 degree angle
+  //   legProps = {
+  //     legDirection: "up",
+  //     footDirection: "right",
+  //     angle: degreesToRadians(-45),
+  //   };
+  // } else if (x > canvas.width / 2 && y <= canvas.height / 2) {
+  //   quadrantClicked = "NE";
+  //   // Leg extends down, foot extends left, -45 degree angle
+  //   legProps = {
+  //     legDirection: "down",
+  //     footDirection: "left",
+  //     angle: degreesToRadians(-45),
+  //   };
+  // } else {
+  //   quadrantClicked = "SE";
+  //   // Leg extends up, foot extends left, 45 degree angle
+  //   legProps = {
+  //     legDirection: "up",
+  //     footDirection: "left",
+  //     angle: degreesToRadians(45),
+  //   };
+  // }
 
   const legDirectionOffsetX = legProps.footDirection === "right" ? -40 : 40;
   const legDirectionOffsetY = legProps.legDirection === "down" ? -80 : 80;
@@ -58,9 +59,6 @@ function onMouseDown(event) {
       collisionFilter: {
         group: -10,
       },
-      chamfer: {
-        radius: 2,
-      },
       render: {
         fillStyle: "blue",
       },
@@ -69,11 +67,13 @@ function onMouseDown(event) {
 
   const footDirectionOffsetX = legProps.footDirection === "left" ? 20 : -20;
   const footDirectionOffsetY = 0;
+  const footWidth = 80 * KICK_LEG_SCALE;
+  const footHeight = 40 * KICK_LEG_SCALE;
   const foot = Matter.Bodies.rectangle(
     x - camX + footDirectionOffsetX * KICK_LEG_SCALE,
     y - camY + footDirectionOffsetY,
-    80 * KICK_LEG_SCALE,
-    40 * KICK_LEG_SCALE,
+    footWidth,
+    footHeight,
     {
       mass: 10,
       friction: 1,
@@ -81,15 +81,15 @@ function onMouseDown(event) {
       collisionFilter: {
         group: -10,
       },
-      chamfer: {
-        radius: 2,
-      },
       render: {
         fillStyle: "#654321",
       },
     },
   );
-  // foot.image = document.getElementById('bootImg');
+  // custom render properties
+  foot.width = footWidth;
+  foot.height = footHeight;
+  foot.image = document.getElementById("bootImg");
   const kickingLeg = Matter.Body.create({
     parts: [leg, foot],
     collisionFilter: {

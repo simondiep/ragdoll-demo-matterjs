@@ -59,21 +59,21 @@ function render() {
   // rotate kicking legs
   for (let i = kickingLegs.length - 1; i >= 0; i--) {
     const leg = kickingLegs[i];
-    let rotation;
-    switch (leg.quadrantClicked) {
-      case "NW":
-        rotation = degreesToRadians(-6);
-        break;
-      case "SW":
-        rotation = degreesToRadians(6);
-        break;
-      case "NE":
-        rotation = degreesToRadians(6);
-        break;
-      case "SE":
-        rotation = degreesToRadians(-6);
-        break;
-    }
+    let rotation = degreesToRadians(-6);
+    // switch (leg.quadrantClicked) {
+    //   case "NW":
+    //     rotation = degreesToRadians(-6);
+    //     break;
+    //   case "SW":
+    //     rotation = degreesToRadians(6);
+    //     break;
+    //   case "NE":
+    //     rotation = degreesToRadians(6);
+    //     break;
+    //   case "SE":
+    //     rotation = degreesToRadians(-6);
+    //     break;
+    // }
     Matter.Body.rotate(leg, rotation);
     if (currentTime > leg.expireTime) {
       Matter.World.remove(engine.world, leg);
@@ -87,13 +87,14 @@ function renderBodyPart(bodyPart) {
   if (bodyPart.label === "Body") {
     return;
   }
-  // if (bodyPart.image) {
-  //   context.save();
-  //   context.rotate(bodyPart.angle);
-  //   context.drawImage(bodyPart.image, bodyPart.position.x, bodyPart.position.y, bodyPart.vertices[1].x - bodyPart.vertices[0].x, bodyPart.vertices[1].y - bodyPart.vertices[0].y);
-  //   context.restore();
-  //   return;
-  // }
+  if (bodyPart.image) {
+    context.save();
+    context.translate(bodyPart.position.x, bodyPart.position.y);
+    context.rotate(bodyPart.angle);
+    context.drawImage(bodyPart.image, -bodyPart.width / 2, -bodyPart.height / 2, bodyPart.width, bodyPart.height);
+    context.restore();
+    return;
+  }
 
   var vertices = bodyPart.vertices;
   context.beginPath();

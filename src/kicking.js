@@ -9,8 +9,8 @@ function onMouseDown(event) {
   const x = event.clientX - canvas.offsetLeft;
   const y = event.clientY - canvas.offsetTop;
   clickedLocation = {
-    x: x - camX,
-    y: y - camY,
+    x,
+    y,
   };
 }
 
@@ -84,7 +84,7 @@ function onMouseUp(event) {
   leg.image = document.getElementById("legImg");
 
   const footDirectionOffsetX = legProps.footDirection === "left" ? 25 : -25;
-  const footDirectionOffsetY = -10;
+  const footDirectionOffsetY = -15;
   const footWidth = 80 * legScale;
   const footHeight = 40 * legScale;
   const foot = Matter.Bodies.rectangle(

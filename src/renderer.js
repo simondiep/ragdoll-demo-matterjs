@@ -35,6 +35,7 @@ function render() {
   var bodies = Matter.Composite.allBodies(engine.world);
 
   adjustCameraToPlayer();
+  drawGoal();
 
   // draw last positions as dot trail to indicate motion
   for (var i = 0; i < lastPositions.length; i++) {
@@ -122,4 +123,34 @@ function renderBodyPart(bodyPart) {
   if (bodyPart.label === "chest") {
     storeLastPosition(bodyPart.position.x, bodyPart.position.y);
   }
+}
+
+function drawGoal() {
+  context.beginPath();
+  context.arc(GOAL.x, GOAL.y, GOAL.size, 0, 2 * Math.PI, true);
+  context.fillStyle = Date.now() % 2 == 0 ? "rgba(205,235,195,0.5)" : "rgba(185,215,175,0.5)";
+  context.fill();
+  if (GOAL.won) {
+    drawText(GOAL.x, GOAL.y, "white", "You Win!");
+  } else {
+    drawText(GOAL.x, GOAL.y, "yellow", "Goal");
+  }
+}
+
+function drawText(centerX, centerY, color, text) {
+  context.save();
+  context.lineWidth = 5;
+  context.strokeStyle = "black";
+  context.fillStyle = color;
+  context.font = "bold 72px Arial";
+
+  const textWidth = context.measureText(text).width;
+  const textHeight = 24;
+  let x = centerX - textWidth / 2;
+  let y = centerY + textHeight / 2;
+
+  // Draw text specifying the bottom left corner
+  context.strokeText(text, x, y);
+  context.fillText(text, x, y);
+  context.restore();
 }

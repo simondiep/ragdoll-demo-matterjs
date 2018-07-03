@@ -72,62 +72,15 @@ function createRagdoll(x, y) {
 
   const head = Bodies.circle(x, y - 70, 30, headOptions);
   chest = Bodies.rectangle(x, y, 60, 80, chestOptions);
-  const rightUpperArm = Bodies.rectangle(
-    x + 40,
-    y - 20,
-    20,
-    40,
-    Object.assign({}, armOptions),
-  );
-  const rightLowerArm = Bodies.rectangle(
-    x + 40,
-    y + 20,
-    20,
-    60,
-    Object.assign({}, armOptions),
-  );
-  const leftUpperArm = Bodies.rectangle(
-    x - 40,
-    y - 20,
-    20,
-    40,
-    Object.assign({}, armOptions),
-  );
-  const leftLowerArm = Bodies.rectangle(
-    x - 40,
-    y + 20,
-    20,
-    60,
-    Object.assign({}, armOptions),
-  );
-  const leftUpperLeg = Bodies.rectangle(
-    x - 20,
-    y + 60,
-    20,
-    40,
-    Object.assign({}, legOptions),
-  );
-  const rightUpperLeg = Bodies.rectangle(
-    x + 20,
-    y + 60,
-    20,
-    40,
-    Object.assign({}, legOptions),
-  );
-  const leftLowerLeg = Bodies.rectangle(
-    x - 20,
-    y + 100,
-    20,
-    60,
-    Object.assign({}, lowerLegOptions),
-  );
-  const rightLowerLeg = Bodies.rectangle(
-    x + 20,
-    y + 100,
-    20,
-    60,
-    Object.assign({}, lowerLegOptions),
-  );
+  chest.size = 40; // To determine overlap of goal
+  const rightUpperArm = Bodies.rectangle(x + 40, y - 20, 20, 40, Object.assign({}, armOptions));
+  const rightLowerArm = Bodies.rectangle(x + 40, y + 20, 20, 60, Object.assign({}, armOptions));
+  const leftUpperArm = Bodies.rectangle(x - 40, y - 20, 20, 40, Object.assign({}, armOptions));
+  const leftLowerArm = Bodies.rectangle(x - 40, y + 20, 20, 60, Object.assign({}, armOptions));
+  const leftUpperLeg = Bodies.rectangle(x - 20, y + 60, 20, 40, Object.assign({}, legOptions));
+  const rightUpperLeg = Bodies.rectangle(x + 20, y + 60, 20, 40, Object.assign({}, legOptions));
+  const leftLowerLeg = Bodies.rectangle(x - 20, y + 100, 20, 60, Object.assign({}, lowerLegOptions));
+  const rightLowerLeg = Bodies.rectangle(x + 20, y + 100, 20, 60, Object.assign({}, lowerLegOptions));
 
   const legTorso = Body.create({
     parts: [chest, leftUpperLeg, rightUpperLeg],
@@ -288,16 +241,7 @@ function createRagdoll(x, y) {
   });
 
   const person = Composite.create({
-    bodies: [
-      legTorso,
-      head,
-      leftLowerArm,
-      leftUpperArm,
-      rightLowerArm,
-      rightUpperArm,
-      leftLowerLeg,
-      rightLowerLeg,
-    ],
+    bodies: [legTorso, head, leftLowerArm, leftUpperArm, rightLowerArm, rightUpperArm, leftLowerLeg, rightLowerLeg],
     constraints: [
       upperToLowerLeftArm,
       upperToLowerRightArm,

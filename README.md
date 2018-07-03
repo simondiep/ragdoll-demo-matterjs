@@ -16,7 +16,10 @@ QWOP each move a different body part upwards. Click to kick.
 ## Ideas
 
 - zoom out the faster the body is moving
-- add goal and win screen
+- Goal
+  - Arrow pointer towards goal if offscreen
+  - Generate new goal on arrival
+  - Keep track of score
 - multiplayer
 - sound effects
 - sprites

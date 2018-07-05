@@ -45,7 +45,7 @@
     canvas.addEventListener('mouseup', onMouseUp);
 
     setInterval(render, 1000 / 60);
-    setInterval(isPlayerInGoal, 1000);
+    setInterval(isPlayerInGoal, 500);
   }
 
   // store last positions to indicate motion
@@ -67,7 +67,7 @@
     }
   }
 </script>
-<div>Get to the flashing goal by clicking around to move the ragdoll, or press qwop</div>
+<div>Get to the goal by clicking around to move the ragdoll, or press qwop</div>
 <div>
   <label>Distance</label>
   <label id="xPosition"></label>

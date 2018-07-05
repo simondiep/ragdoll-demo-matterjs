@@ -56,6 +56,8 @@ function render() {
     }
   }
 
+  drawArrowToGoal();
+
   // draw indicator if click is being held down
   if (clickedLocation) {
     const dotColor = Date.now() % 2 == 0 ? "rgba(255,255,255,0.2)" : "rgba(155,155,155,0.2)";
@@ -91,6 +93,14 @@ function render() {
       kickingLegs.splice(i, 1);
     }
   }
+
+  drawText(
+    chest.position.x - (canvas.width * 2) / 5,
+    chest.position.y - (canvas.height * 4) / 7,
+    "white",
+    `Score: ${score}`,
+    36,
+  );
 }
 
 // Custom renderer
@@ -130,19 +140,19 @@ function drawGoal() {
   context.arc(GOAL.x, GOAL.y, GOAL.size, 0, 2 * Math.PI, true);
   context.fillStyle = Date.now() % 2 == 0 ? "rgba(205,235,195,0.5)" : "rgba(185,215,175,0.5)";
   context.fill();
-  if (GOAL.won) {
-    drawText(GOAL.x, GOAL.y, "white", "You Win!");
+  if (GOAL.reached) {
+    drawText(GOAL.x, GOAL.y, "white", "Score + 1");
   } else {
     drawText(GOAL.x, GOAL.y, "yellow", "Goal");
   }
 }
 
-function drawText(centerX, centerY, color, text) {
+function drawText(centerX, centerY, color, text, fontSize = 72) {
   context.save();
   context.lineWidth = 5;
   context.strokeStyle = "black";
   context.fillStyle = color;
-  context.font = "bold 72px Arial";
+  context.font = `bold ${fontSize}px Arial`;
 
   const textWidth = context.measureText(text).width;
   const textHeight = 24;
@@ -152,5 +162,26 @@ function drawText(centerX, centerY, color, text) {
   // Draw text specifying the bottom left corner
   context.strokeText(text, x, y);
   context.fillText(text, x, y);
+  context.restore();
+}
+
+function drawArrowToGoal() {
+  const originPointX = 0;
+  const originPointY = 0;
+  const rotationInRadians = Math.atan2(GOAL.y - chest.position.y, GOAL.x - chest.position.x);
+  context.save();
+  context.fillStyle = "rgba(255, 255, 255, 0.2)";
+  context.beginPath();
+  context.translate(chest.position.x, chest.position.y);
+  context.rotate(rotationInRadians);
+  context.moveTo(originPointX, originPointY);
+  context.lineTo(originPointX + 50, originPointY);
+  context.lineTo(originPointX + 50, originPointY + 15);
+  context.lineTo(originPointX + 75, originPointY - 10);
+  context.lineTo(originPointX + 50, originPointY - 35);
+  context.lineTo(originPointX + 50, originPointY - 20);
+  context.lineTo(originPointX, originPointY - 20);
+  context.lineTo(originPointX, 0);
+  context.fill();
   context.restore();
 }

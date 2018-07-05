@@ -22,6 +22,8 @@ const kickingLegs = [];
 let camX;
 let camY;
 
+let score = 0;
+
 function degreesToRadians(degrees) {
   return (degrees * Math.PI) / 180;
 }

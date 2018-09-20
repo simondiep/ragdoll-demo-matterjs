@@ -2,6 +2,8 @@
 
 An example ragdoll leveraging matter-js physics engine.
 
+![demo preview](./preview.gif?raw=true)
+
 ## Findings
 
 - Ragdoll physics are glitchy, with collisions causing random bursts of movement
